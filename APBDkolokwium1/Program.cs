@@ -1,8 +1,10 @@
+using APBDkolokwium1.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.AddControllers();
-//builder.Services.AddScoped<IVisitService, VisitService>();
+builder.Services.AddScoped<IAServices, AServices>();
 
 builder.Services.AddOpenApi();
 var app = builder.Build();
