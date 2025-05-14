@@ -1,3 +1,4 @@
+using APBDkolokwium1.Exceptions;
 using APBDkolokwium1.Models;
 using Microsoft.Data.SqlClient;
 
@@ -71,7 +72,6 @@ public class DeliveryServices : IDeliveryServices
                     {
                         result.Products.Add(product);
                     }
-                    
                 }
             }
         }
@@ -80,7 +80,7 @@ public class DeliveryServices : IDeliveryServices
     }
 
 
-    async Task IDeliveryServices.addNewDelivery(postDeliveryDTO neewA)
+    async Task IDeliveryServices.addNewDelivery(postDeliveryDTO newDeliveryDto)
     {
         String command = "";
         using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -89,48 +89,74 @@ public class DeliveryServices : IDeliveryServices
             await conn.OpenAsync();
 
 
-            // var a = (int)await cmd.ExecuteScalarAsync();
-            //
-            // if (a > 0)
-            // {
-            //     throw new ConflictException(" o podanym ID już istnieje");
-            // }
+            cmd.CommandText = @"SELECT COUNT(*) FROM Delivery WHERE Delivery.delivery_id = @id";
 
+            cmd.Parameters.AddWithValue("@id", newDeliveryDto.deliveryId);
 
-            // a = (int)await cmd.ExecuteScalarAsync();
-            // if (a < 1)
-            // {
-            //     throw new NotFoundException(" podanym ID nie istnieje");
-            // }
+            var a = (int)await cmd.ExecuteScalarAsync();
 
-
-            //
-            // if (!((int)await cmd.ExecuteScalarAsync() > 0))
-            // {
-            //     throw new NotFoundException(" o podanym ID nie istnieje");
-            // }
+            if (a > 0)
+            {
+                throw new ConflictException(" Delivery o podanym ID już istnieje");
+            }
 
             cmd.Parameters.Clear();
 
+            cmd.CommandText = "SELECT COUNT(*) FROM Customer WHERE Customer.customer_id = @id";
+            cmd.Parameters.AddWithValue("@id", newDeliveryDto.customerId);
 
-            //
-            // await cmd.ExecuteNonQueryAsync();
-            // foreach (var a in neewA.aaa)
-            // {
-            //    
-            //
-            //     // if (!((int)await cmd.ExecuteScalarAsync() > 0))
-            //     // {
-            //     //     throw new NotFoundException("o takiej nazwie nie istnieje");
-            //     // }
-            //
-            //
-            //     cmd.Parameters.Clear();
-            //     
-            //     // insert
-            //
-            //     await cmd.ExecuteNonQueryAsync();
-            // }
+            a = (int)await cmd.ExecuteScalarAsync();
+            if (a < 1)
+            {
+                throw new NotFoundException(" Customer o podanym ID nie istnieje");
+            }
+
+            cmd.Parameters.Clear();
+            cmd.CommandText =
+                @"SELECT COUNT(*) FROM Driver WHERE driver_id  = (SELECT driver_id FROM Driver where Driver.licence_number = @licence_number)";
+            cmd.Parameters.AddWithValue("@licence_number", newDeliveryDto.licenceNumber);
+            
+            
+            if (!((int)await cmd.ExecuteScalarAsync() > 0))
+            {
+                throw new NotFoundException(" Driver o podanym ID nie istnieje");
+            }
+
+            cmd.Parameters.Clear();
+
+            cmd.CommandText =
+                @"INSERT INTO Delivery VALUES (@delivery_id, @customer_id, (SELECT driver_id FROM Driver where Driver.licence_number = @licence_number), GETDATE())";
+            cmd.Parameters.AddWithValue("@delivery_id", newDeliveryDto.deliveryId);
+            cmd.Parameters.AddWithValue("@customer_id", newDeliveryDto.customerId);
+            cmd.Parameters.AddWithValue("@licence_number", newDeliveryDto.licenceNumber);
+            
+            
+
+            
+            await cmd.ExecuteNonQueryAsync();
+            foreach (var s in newDeliveryDto.Products)
+            {
+               
+                cmd.Parameters.Clear();
+                cmd.CommandText = @"SELECT COUNT(*) FROM Product WHERE name = @name";
+                cmd.Parameters.AddWithValue("@name", s.Name);
+                
+                if (!((int)await cmd.ExecuteScalarAsync() > 0))
+                {
+                    throw new NotFoundException("Product o takiej nazwie nie istnieje");
+                }
+            
+           
+                cmd.Parameters.Clear();
+                cmd.CommandText = @"INSERT INTO Product_Delivery (delivery_id, product_id, amount)
+                VALUES(@deliver_id,(SELECT product_id FROM Product where name = @name),@amount);";
+
+                cmd.Parameters.AddWithValue("@deliver_id", newDeliveryDto.deliveryId);
+                cmd.Parameters.AddWithValue("@name", s.Name);
+                cmd.Parameters.AddWithValue("@amount", s.Amount);
+            
+                await cmd.ExecuteNonQueryAsync();
+            }
         }
     }
 }

@@ -41,23 +41,23 @@ namespace APBDkolokwium1.Controllers
             {
                 return BadRequest(ModelState);
             }
-            
-            
+
             try
             {
                 await _iDeliveryServices.addNewDelivery(postDeliveryDto);
             }
-            catch (NotFoundException ex)
+            catch (NotFoundException e)
             {
-                return NotFound(ex.Message);
+                return NotFound(e.Message);
             }
-            catch (ConflictException ex)
+            catch (ConflictException exception)
             {
-                return Conflict(ex.Message);
+                return Conflict(exception.Message);
             }
 
 
-            return Created("", "utworzone");
+            return Created("", "Utworzono");
+
         }
         
         
