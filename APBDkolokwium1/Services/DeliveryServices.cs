@@ -8,16 +8,17 @@ public class DeliveryServices : IDeliveryServices
     private readonly string _connectionString =
         "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=kolokwium;Integrated Security=True;";
 
-    async Task<DeliveryDTO> IDeliveryServices.getA(string visitId)
+    async Task<DeliveryDTO> IDeliveryServices.getDelivery(string visitId)
     {
         DeliveryDTO? result = null;
 
-        string command = @"SELECT * FROM Visit 
-            JOIN Client ON Visit.client_id = Client.client_id
-            JOIN Mechanic ON Visit.mechanic_id = Mechanic.mechanic_id
-            JOIN Visit_Service ON Visit.visit_id = Visit_Service.visit_id
-            JOIN Service ON Visit_Service.service_id = Service.service_id
-            WHERE Visit.visit_id = @id";
+        string command =
+            @"SELECT *, Driver.first_name as driver_first_name, Driver.last_name as driver_last_name FROM Delivery
+        JOIN Customer ON Delivery.customer_id = Customer.customer_id
+        JOIN Driver ON Delivery.driver_id = Driver.driver_id
+        JOIN Product_Delivery ON Delivery.delivery_id = Product_Delivery.delivery_id
+        JOIN Product ON Product_Delivery.product_id = Product.product_id
+        WHERE Delivery.delivery_id = @id";
 
 
         using (SqlConnection conn = new SqlConnection(_connectionString))
@@ -30,44 +31,63 @@ public class DeliveryServices : IDeliveryServices
             {
                 while (await reader.ReadAsync())
                 {
-                    
                     DateTime date = DateTime.Parse(reader["date"].ToString());
+                    Customer customer = new Customer()
+                    {
+                        FirstName = reader["first_name"].ToString(),
+                        LastName = reader["last_name"].ToString(),
+                        DateOfBirth = DateTime.Parse(reader["date_of_birth"].ToString()),
+                    };
+
+                    Driver driver = new Driver()
+                    {
+                        FirstName = reader["driver_first_name"].ToString(),
+                        LastName = reader["driver_last_name"].ToString(),
+                        LicenceNumber = reader["licence_number"].ToString(),
+                    };
 
 
+                    Product product = new Product()
+                    {
+                        Name = reader["name"].ToString(),
+                        Price = Convert.ToDouble(reader["price"]),
+                        Amount = (int)reader["amount"],
+                    };
 
                     if (result == null)
                     {
-                        
-                        
+                        result = new DeliveryDTO()
+                        {
+                            Date = date,
+                            Customer = customer,
+                            Driver = driver,
+                            Products = new List<Product>(),
+                        };
+
+
+                        result.Products.Add(product);
                     }
                     else
                     {
-                        
-                        
-                        
-                        
-                        
+                        result.Products.Add(product);
                     }
-
+                    
                 }
             }
         }
+
         return result;
     }
 
 
-
-    async Task IDeliveryServices.addNewA(postDeliveryDTO neewA)
+    async Task IDeliveryServices.addNewDelivery(postDeliveryDTO neewA)
     {
-        
-        
-         String command = "";
+        String command = "";
         using (SqlConnection conn = new SqlConnection(_connectionString))
         using (SqlCommand cmd = new SqlCommand(command, conn))
         {
             await conn.OpenAsync();
 
-         
 
             // var a = (int)await cmd.ExecuteScalarAsync();
             //
@@ -76,7 +96,6 @@ public class DeliveryServices : IDeliveryServices
             //     throw new ConflictException(" o podanym ID już istnieje");
             // }
 
-       
 
             // a = (int)await cmd.ExecuteScalarAsync();
             // if (a < 1)
@@ -84,7 +103,7 @@ public class DeliveryServices : IDeliveryServices
             //     throw new NotFoundException(" podanym ID nie istnieje");
             // }
 
-            
+
             //
             // if (!((int)await cmd.ExecuteScalarAsync() > 0))
             // {
@@ -93,7 +112,7 @@ public class DeliveryServices : IDeliveryServices
 
             cmd.Parameters.Clear();
 
-           
+
             //
             // await cmd.ExecuteNonQueryAsync();
             // foreach (var a in neewA.aaa)
@@ -113,8 +132,5 @@ public class DeliveryServices : IDeliveryServices
             //     await cmd.ExecuteNonQueryAsync();
             // }
         }
-        
-        
     }
-    
 }
