@@ -1,6 +1,6 @@
 namespace APBDkolokwium1.Models;
 
-public class aDTO
+public class DeliveryDTO
 {
     
     //cialo

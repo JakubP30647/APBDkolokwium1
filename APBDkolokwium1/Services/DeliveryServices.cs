@@ -3,14 +3,14 @@ using Microsoft.Data.SqlClient;
 
 namespace APBDkolokwium1.Services;
 
-public class AServices : IAServices
+public class DeliveryServices : IDeliveryServices
 {
     private readonly string _connectionString =
         "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=kolokwium;Integrated Security=True;";
 
-    async Task<aDTO> IAServices.getA(string visitId)
+    async Task<DeliveryDTO> IDeliveryServices.getA(string visitId)
     {
-        aDTO? result = null;
+        DeliveryDTO? result = null;
 
         string command = @"SELECT * FROM Visit 
             JOIN Client ON Visit.client_id = Client.client_id
@@ -57,7 +57,7 @@ public class AServices : IAServices
 
 
 
-    async Task IAServices.addNewA(postADTO neewA)
+    async Task IDeliveryServices.addNewA(postDeliveryDTO neewA)
     {
         
         

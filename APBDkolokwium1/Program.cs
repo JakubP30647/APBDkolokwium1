@@ -4,7 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.AddControllers();
-builder.Services.AddScoped<IAServices, AServices>();
+builder.Services.AddScoped<IDeliveryServices, DeliveryServices>();
 
 builder.Services.AddOpenApi();
 var app = builder.Build();

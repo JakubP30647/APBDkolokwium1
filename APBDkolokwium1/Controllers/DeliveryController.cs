@@ -8,21 +8,21 @@ namespace APBDkolokwium1.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AController : ControllerBase
+    public class DeliveryController : ControllerBase
     {
         
-        private readonly IAServices _iAServices;
+        private readonly IDeliveryServices _iDeliveryServices;
         
-        public AController(IAServices iAServices)
+        public DeliveryController(IDeliveryServices iDeliveryServices)
         {
-            _iAServices = iAServices;
+            _iDeliveryServices = iDeliveryServices;
         }
 
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetA(string id)
         {
-            var aDTO = await _iAServices.getA(id);
+            var aDTO = await _iDeliveryServices.getA(id);
 
             if (aDTO == null)
             {
@@ -33,7 +33,7 @@ namespace APBDkolokwium1.Controllers
         }
         
         [HttpPost]
-        public async Task<IActionResult> postADTO([FromBody] postADTO postAdto)
+        public async Task<IActionResult> postADTO([FromBody] postDeliveryDTO postDeliveryDto)
         {
 
 
@@ -45,7 +45,7 @@ namespace APBDkolokwium1.Controllers
             
             try
             {
-                await _iAServices.addNewA(postAdto);
+                await _iDeliveryServices.addNewA(postDeliveryDto);
             }
             catch (NotFoundException ex)
             {
