@@ -23,10 +23,11 @@ namespace APBDkolokwium1.Controllers
         public async Task<IActionResult> GetDelivery(string id)
         {
             var Delivery = await _iDeliveryServices.getDelivery(id);
-
+            
+            
             if (Delivery == null)
             {
-                return NotFound("not found");
+                return NotFound("nie znaleziono Delivery o id:" + id);
             }
 
             return Ok(Delivery);
